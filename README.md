@@ -1,59 +1,7 @@
-## 📌 项目简介
+目的：针对Deepfake伪造人脸检测算法在JPEG压缩场景下性能显著退化的问题，本文基于Xception网络，提出并验证了一种结合标签平滑（Label Smoothing, LS）与JPEG增强的训练优化策略，旨在提升模型在真实部署环境下的压缩鲁棒性。
 
-本项目针对社交媒体压缩导致Deepfake检测性能下降的问题，提出了Label Smoothing + JPEG压缩增强的组合训练策略。
-This project addresses the performance degradation of Deepfake detection caused by social media compression, proposing a combined training strategy of **Label Smoothing + JPEG Augmentation**.
+方法：实验基于FaceForensics++与DF40数据集，选取DeepFaceLab与FaceSwap两种主流伪造方法构建训练集，图像统一裁剪为299×299像素，并采用随机水平翻转进行数据增强。在测试阶段设计三阶段图像退化管道模拟实际压缩环境。优化策略包括：在训练中引入随机JPEG压缩（质量因子30–90）与标签平滑正则化，单独及组合评估其对模型抗压缩能力的影响。
 
-**核心贡献：**
-- ✅ 验证Xception在压缩场景下的性能退化（99.30% → 61.30%）
-  *Validated Xception's performance degradation under compression (99.30% → 61.30%)*
-  
-- ✅ 通过消融实验证明单一策略无效，两者协同有效
-  *Ablation study proves single strategies ineffective, combination works*
-  
-- ✅ 改进模型在QF=30时达**72.71%**，相比基线提升11.41个百分点
-  *Improved model achieves **72.71%** at QF=30, +11.41 percentage points over baseline*
+结果：基线Xception模型在高质量（QF=100）下准确率为99.3%，但在强压缩（QF=30）下准确率骤降至61.3%，性能跌幅达38%。单独使用JPEG增强或标签平滑均未能显著改善，甚至出现负效应。而JPEG+LS组合策略在QF=50下准确率提升至82.17%，较基线提升20.87%；在QF=30下准确率达70.4%，分离度指标（0.5498）与5-NN准确率（87.14%）均为最优，t-SNE可视化显示真实与伪造样本形成清晰聚类边界。跨数据集（中国人脸GAN图像）泛化实验中，组合模型准确率为89.2%，验证了其在跨人种场景下的适应性。但在扩散模型（CollabDiff）检测任务中，所有模型准确率均降至30–40%，表明当前方法对非GAN生成机制缺乏泛化能力。
 
----
-
-## 📊 核心实验结果
-
-### 压缩鲁棒性对比（QF=30）Compression Robustness (QF=30)
-
-| 模型 | 准确率 | 下降幅度 |
-|------|--------|----------|
-| Baseline | 61.30% | 38.0% |
-| JPEG Only | 55.04% | 44.18% |
-| Label Smoothing | 58.01% | 40.90% |
-| **LS + JPEG (Ours)** | **72.71%** | **25.96%** |
-
-### 特征分离度分析（QF=30）Feature Separability (QF=30)
-
-| 模型 | 分离度 | 5-NN准确率 |
-|------|--------|-----------|
-| Baseline | 0.4053 | 81.43% |
-| JPEG Only | 0.3900 | 77.14% |
-| Label Smoothing | 0.5060 | 88.57% |
-| **LS + JPEG (Ours)** | **0.5498** | **87.14%** |
-
-### 泛化实验 Generalization
-
-| 测试集 | Baseline | LS+JPEG |
-|--------|----------|---------|
-| 中国人脸（GAN架构） | 85.16% | 84.04% |
-| CollabDiff（扩散模型） | 33.00% | 33.10% |
-
----
-
-## 📈 可视化结果 Visualizations
-
-| 压缩实验 | 基线崩塌实验 |
-| Compression Experiment | Baseline Collapse |
-| 压缩性能对比 | 特征分布(t-SNE) |
-| Performance Comparison | Feature Distribution |
-| 置信度分析 | 消融实验 |
-| Confidence Analysis | Ablation Study |
-
-## ⭐ Star
-
-如果这个项目对你有帮助，请给一个Star ⭐
-*If this project helps you, please give it a Star ⭐*
+结论：JPEG增强与标签平滑的协同策略能有效缓解压缩带来的域偏移问题，显著提升Xception模型在实际压缩环境下的检测鲁棒性。然而，模型仍局限于学习GAN特有的伪造指纹，对扩散模型等新型生成方法失效，未来需探索与算法无关的通用伪造特征表示及多模态融合策略。
